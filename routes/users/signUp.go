@@ -6,7 +6,7 @@ import (
 	"net/http"
 	utilserrors "primitivofr/kaepora/utils/errors"
 
-	user "primitivofr/kaepora/models"
+	user "primitivofr/kaepora/services/user"
 )
 
 // SignUp is the route handler to sign a user up

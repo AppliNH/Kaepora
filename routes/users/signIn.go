@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	user "primitivofr/kaepora/models"
+	user "primitivofr/kaepora/services/user"
 	utilserrors "primitivofr/kaepora/utils/errors"
 )
 
