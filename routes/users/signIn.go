@@ -32,7 +32,23 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if isAuth {
+		pubKey, err := myUser.GetPublicKey()
+		if err != nil {
+			log.Println(err)
+		}
+		privKey, err := myUser.GetPrivateKey()
+		if err != nil {
+			log.Println(err)
+		}
+
+		log.Println(pubKey)
+		log.Println(privKey)
+		// response := map[string]interface{}{
+		// 	"publicKey": "",
+		// }
+
 		w.WriteHeader(http.StatusOK)
+
 	} else {
 		w.WriteHeader(http.StatusUnauthorized)
 	}

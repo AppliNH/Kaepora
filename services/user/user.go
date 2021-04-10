@@ -15,7 +15,13 @@ var dbUsers *bolt.DB
 
 func init() {
 	var err error
-	dbUsers, err = kvdb.InitDB("kaeporadb", "users")
+	dbUsers, err = kvdb.InitDB("kaepora-users-db", "users")
+	if err != nil {
+		log.Println(err)
+		panic(err)
+	}
+
+	dbKeys, err = kvdb.InitDB("kaepora-keys-db", "keys")
 	if err != nil {
 		log.Println(err)
 		panic(err)
@@ -31,18 +37,19 @@ type User struct {
 // NewUser instanciates a user object
 func NewUser(username string, password string) (*User, error) {
 
-	hashedPwd := sha256.Sum256([]byte(password))
+	// hashedPwd := sha256.Sum256([]byte(password))
+
 	return &User{
 		Username: username,
-		Password: hex.EncodeToString(hashedPwd[:]),
+		Password: password,
 	}, nil
 
 }
 
 // SignUp user into db
 func (myUser *User) SignUp() error {
-
-	if err := kvdb.WriteData(dbUsers, "users", myUser.Username, myUser.Password); err != nil {
+	hashedPwd := sha256.Sum256([]byte(myUser.Password))
+	if err := kvdb.WriteData(dbUsers, "users", myUser.Username, hex.EncodeToString(hashedPwd[:])); err != nil {
 		return err
 	}
 
@@ -54,11 +61,16 @@ func (myUser *User) Authenticate() (bool, error) {
 
 	actualHashedPwd, err := kvdb.ReadData(dbUsers, "users", myUser.Username)
 
-	if err != nil || actualHashedPwd == "" {
-		return false, errors.New("Couldn't find user " + myUser.Username)
+	if err != nil {
+		return false, errors.New("Error occured while looking inside the db")
 	}
 
-	if actualHashedPwd == myUser.Password {
+	if actualHashedPwd == "" {
+		return false, errors.New("Couldn't find user " + myUser.Username)
+	}
+	hashedPwd := sha256.Sum256([]byte(myUser.Password))
+
+	if actualHashedPwd == hex.EncodeToString(hashedPwd[:]) {
 		return true, nil
 	}
 

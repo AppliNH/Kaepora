@@ -45,5 +45,16 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	keys, err := myUser.NewUserKeys()
+	if err != nil {
+		log.Println(err)
+		utilserrors.SendHTTPError(w, http.StatusInternalServerError, "Internal error occured while generating keys")
+	}
+
+	if err := keys.SaveToDB(); err != nil {
+		log.Println(err)
+		utilserrors.SendHTTPError(w, http.StatusInternalServerError, "Internal error occured while saving encrypted keys to db")
+	}
+
 	w.WriteHeader(http.StatusCreated)
 }
