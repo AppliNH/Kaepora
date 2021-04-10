@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	routesuser "primitivofr/kaepora/routes/users"
-	"primitivofr/kaepora/services/user"
+	routesauth "primitivofr/kaepora/routes/auth"
+	routesusers "primitivofr/kaepora/routes/users"
 
 	"github.com/gorilla/mux"
 )
@@ -23,11 +23,16 @@ func Rewriter(h http.Handler) http.Handler {
 func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	r := mux.NewRouter()
-	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		user.ReadAllFromDB()
-	})
-	r.HandleFunc("/users/signup", routesuser.SignUp).Methods("POST")
-	r.HandleFunc("/users/signin", routesuser.SignIn).Methods("POST")
+
+	// r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	// 	auth.ReadAllFromDB()
+	// })
+
+	r.HandleFunc("/auth/signup", routesauth.SignUp).Methods("POST")
+	r.HandleFunc("/auth/signin", routesauth.SignIn).Methods("POST")
+
+	r.HandleFunc("/users/{username}", routesusers.GetUserPubKey).Methods("GET")
+	r.HandleFunc("/users", routesusers.GetUsernames).Methods("GET")
 
 	log.Println("Runnin on port 5000")
 	log.Fatal(http.ListenAndServe(":5000", r))

@@ -1,11 +1,12 @@
-package routesusers
+package auth
 
 import (
+	"crypto/x509"
 	"encoding/json"
 	"log"
 	"net/http"
 
-	user "primitivofr/kaepora/services/user"
+	auth "primitivofr/kaepora/services/auth"
 	utilserrors "primitivofr/kaepora/utils/errors"
 )
 
@@ -22,7 +23,7 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	myUser, _ := user.NewUser(data["username"].(string), data["password"].(string))
+	myUser, _ := auth.NewUser(data["username"].(string), data["password"].(string))
 
 	isAuth, err := myUser.Authenticate()
 	if err != nil {
@@ -41,13 +42,18 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 			log.Println(err)
 		}
 
-		log.Println(pubKey)
-		log.Println(privKey)
-		// response := map[string]interface{}{
-		// 	"publicKey": "",
-		// }
+		marshalledPrivKey := x509.MarshalPKCS1PrivateKey(privKey)
+		marshalledPublicKey := x509.MarshalPKCS1PublicKey(pubKey)
+
+		response := map[string]interface{}{
+			"publicKey":  marshalledPublicKey,
+			"privateKey": marshalledPrivKey,
+		}
+
+		responseJSON, _ := json.Marshal(response)
 
 		w.WriteHeader(http.StatusOK)
+		w.Write(responseJSON)
 
 	} else {
 		w.WriteHeader(http.StatusUnauthorized)

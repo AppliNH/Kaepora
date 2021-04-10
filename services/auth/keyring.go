@@ -1,4 +1,4 @@
-package user
+package auth
 
 import (
 	"crypto/aes"
@@ -9,18 +9,12 @@ import (
 	"encoding/json"
 	"errors"
 	"log"
-	"primitivofr/kaepora/kvdb"
-
-	"github.com/boltdb/bolt"
+	"primitivofr/kaepora/models"
+	"primitivofr/kaepora/services/db"
 )
 
-var dbKeys *bolt.DB
-
-// UserKeys holds the RSA of a user
 type UserKeys struct {
-	Username      string   `json:"-"`
-	EncPrivateKey [][]byte `json:"encPrivateKey"`
-	PublicKey     []byte   `json:"publicKey"`
+	*models.UserKeys
 }
 
 // NewUserKeys builds a UserKeys object. It uses a hash512 of the user's password, to encrypt the private key
@@ -72,21 +66,24 @@ func (myUser *User) NewUserKeys() (*UserKeys, error) {
 		encChunkedPk = append(encChunkedPk, encChunk)
 
 	}
-
-	return &UserKeys{
-		Username:      myUser.Username,
-		EncPrivateKey: encChunkedPk,
-		PublicKey:     marshalledPublicKey,
-	}, nil
+	uK := models.NewUserKeys(myUser.Username, encChunkedPk, marshalledPublicKey)
+	return &UserKeys{uK}, nil
 
 }
 
 // GetKeys reads keys from db and return a UserKeys object
 func (myUser *User) getKeys() (*UserKeys, error) {
-	data, err := kvdb.ReadData(dbKeys, "keys", myUser.Username)
+	dbKeys, err := db.NewKeysDb()
 	if err != nil {
 		return nil, err
 	}
+
+	data, err := dbKeys.Read(myUser.Username)
+
+	if err != nil {
+		return nil, err
+	}
+
 	if data == "" {
 		return nil, errors.New("No keys have been found for this user " + myUser.Username)
 	}
@@ -116,6 +113,7 @@ func (myUser *User) GetPublicKey() (*rsa.PublicKey, error) {
 func (myUser *User) GetPrivateKey() (*rsa.PrivateKey, error) {
 
 	keys, err := myUser.getKeys()
+
 	if err != nil {
 		return nil, err
 	}
@@ -145,11 +143,17 @@ func (myUser *User) GetPrivateKey() (*rsa.PrivateKey, error) {
 
 // SaveToDB saves keys to db
 func (keys *UserKeys) SaveToDB() error {
+
+	dbKeys, err := db.NewKeysDb()
+	if err != nil {
+		return err
+	}
+	log.Println(keys.Username)
 	jsonStr, err := json.Marshal(keys)
 	if err != nil {
 		return err
 	}
-	return kvdb.WriteData(dbKeys, "keys", keys.Username, string(jsonStr))
+	return dbKeys.Write(keys.Username, string(jsonStr))
 }
 
 // generateRSA generates a pair of RSA keys

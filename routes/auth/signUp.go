@@ -1,12 +1,12 @@
-package routesusers
+package auth
 
 import (
+	"crypto/x509"
 	"encoding/json"
 	"log"
 	"net/http"
+	"primitivofr/kaepora/services/auth"
 	utilserrors "primitivofr/kaepora/utils/errors"
-
-	user "primitivofr/kaepora/services/user"
 )
 
 // SignUp is the route handler to sign a user up
@@ -23,7 +23,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 
 	}
 
-	myUser, _ := user.NewUser(data["username"].(string), data["password"].(string))
+	myUser, _ := auth.NewUser(data["username"].(string), data["password"].(string))
 
 	exist, err := myUser.UserExist()
 	if err != nil {
@@ -56,5 +56,26 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 		utilserrors.SendHTTPError(w, http.StatusInternalServerError, "Internal error occured while saving encrypted keys to db")
 	}
 
+	pubKey, err := myUser.GetPublicKey()
+	if err != nil {
+		log.Println(err)
+	}
+	privKey, err := myUser.GetPrivateKey()
+	if err != nil {
+		log.Println(err)
+	}
+
+	marshalledPrivKey := x509.MarshalPKCS1PrivateKey(privKey)
+	marshalledPublicKey := x509.MarshalPKCS1PublicKey(pubKey)
+
+	response := map[string]interface{}{
+		"publicKey":  marshalledPublicKey,
+		"privateKey": marshalledPrivKey,
+	}
+
+	responseJSON, _ := json.Marshal(response)
+
 	w.WriteHeader(http.StatusCreated)
+	w.Write(responseJSON)
+
 }
