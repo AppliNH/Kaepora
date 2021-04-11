@@ -31,9 +31,10 @@ var resetCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		ex, _ := os.Executable()
 		exPath := filepath.Dir(ex)
-		files, _ := filepath.Glob(exPath + "/kaepora-db")
+		files, _ := filepath.Glob(exPath + "/kaepora-db/*")
+
 		for _, f := range files {
-			if err := os.Remove(f); err != nil {
+			if err := os.RemoveAll(f); err != nil {
 				panic(err)
 			}
 		}
