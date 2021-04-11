@@ -149,7 +149,7 @@ func (keys *UserKeys) SaveToDB() error {
 	if err != nil {
 		return err
 	}
-	log.Println(keys.Username)
+
 	jsonStr, err := json.Marshal(keys)
 	if err != nil {
 		return err
@@ -160,7 +160,7 @@ func (keys *UserKeys) SaveToDB() error {
 // generateRSA generates a pair of RSA keys
 func generateRSA() (*rsa.PrivateKey, *rsa.PublicKey, error) {
 	privateKey, err := rsa.GenerateKey(rand.Reader, 1024)
-	log.Println(privateKey.Size())
+
 	if err != nil {
 		return nil, nil, err
 	}
