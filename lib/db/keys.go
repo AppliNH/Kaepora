@@ -2,9 +2,9 @@ package db
 
 import (
 	"encoding/json"
-	"log"
-	"primitivofr/kaepora/kvdb"
-	"primitivofr/kaepora/models"
+
+	"github.com/applinh/kaepora/kvdb"
+	"github.com/applinh/kaepora/models"
 )
 
 var keysDbName = "kaepora-keys-db"
@@ -26,7 +26,7 @@ func ReadAllKeys() ([]models.UserKeys, error) {
 	defer db.Close()
 
 	data, err := kvdb.ReadAll(db.boltDriver, db.BucketName)
-	log.Println(data)
+
 	if err != nil {
 		return nil, err
 	}

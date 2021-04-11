@@ -2,6 +2,7 @@ package kvdb
 
 import (
 	"os"
+	"path/filepath"
 
 	"github.com/boltdb/bolt"
 )
@@ -11,16 +12,19 @@ import (
 // bucketName is the name of the bucket that will contain data
 func InitDB(dbName string, bucketName string) (*bolt.DB, error) {
 
-	//ex, _ := os.Executable()
+	ex, _ := os.Executable()
 
-	//exPath := filepath.Dir(ex)
+	exPath := filepath.Dir(ex)
 	//fmt.Println(exPath)
 
-	if _, err := os.Stat("./" + dbName); os.IsNotExist(err) {
-		os.Mkdir("./"+dbName, 0700)
+	if _, err := os.Stat(exPath + "/kaepora-db/" + dbName); os.IsNotExist(err) {
+		err := os.MkdirAll(exPath+"/kaepora-db/"+dbName, 0700)
+		if err != nil {
+			panic(err)
+		}
 	}
 
-	db, err := bolt.Open("./"+dbName+"/"+dbName+".db", 0700, nil)
+	db, err := bolt.Open(exPath+"/kaepora-db/"+dbName+"/"+dbName+".db", 0700, nil)
 	if err != nil {
 		panic(err)
 	}

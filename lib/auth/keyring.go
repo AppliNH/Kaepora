@@ -9,8 +9,9 @@ import (
 	"encoding/json"
 	"errors"
 	"log"
-	"primitivofr/kaepora/models"
-	"primitivofr/kaepora/services/db"
+
+	"github.com/applinh/kaepora/lib/db"
+	"github.com/applinh/kaepora/models"
 )
 
 type UserKeys struct {
@@ -215,4 +216,24 @@ func chunkSlice(slice []byte, chunkSize int) [][]byte {
 	}
 
 	return chunks
+}
+
+func (u *User) GeneratePlainKeyPair() (*models.PlainKeyPair, error) {
+
+	pubKey, err := u.GetPublicKey()
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	privKey, err := u.GetPrivateKey()
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	marshalledPrivKey := x509.MarshalPKCS1PrivateKey(privKey)
+	marshalledPublicKey := x509.MarshalPKCS1PublicKey(pubKey)
+
+	return &models.PlainKeyPair{PrivateKey: marshalledPrivKey, PublicKey: marshalledPublicKey}, nil
 }

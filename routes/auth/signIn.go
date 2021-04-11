@@ -1,13 +1,12 @@
 package auth
 
 import (
-	"crypto/x509"
 	"encoding/json"
 	"log"
 	"net/http"
 
-	auth "primitivofr/kaepora/services/auth"
-	utilserrors "primitivofr/kaepora/utils/errors"
+	authService "github.com/applinh/kaepora/services/auth"
+	utilserrors "github.com/applinh/kaepora/utils/errors"
 )
 
 // SignIn is the route handler to sign a user up
@@ -23,40 +22,17 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	myUser, _ := auth.NewUser(data["username"].(string), data["password"].(string))
-
-	isAuth, err := myUser.Authenticate()
+	res, err := authService.SignIn(data["username"].(string), data["password"].(string))
 	if err != nil {
 		log.Println(err)
-		utilserrors.SendHTTPError(w, http.StatusInternalServerError, "Internal error occured while authenticating user")
+		// TODO: Create error models and adapt the http return code
+		utilserrors.SendHTTPError(w, http.StatusUnauthorized, "Error occured while authenticating user : "+err.Error())
 		return
 	}
 
-	if isAuth {
-		pubKey, err := myUser.GetPublicKey()
-		if err != nil {
-			log.Println(err)
-		}
-		privKey, err := myUser.GetPrivateKey()
-		if err != nil {
-			log.Println(err)
-		}
+	responseJSON, _ := json.Marshal(res)
 
-		marshalledPrivKey := x509.MarshalPKCS1PrivateKey(privKey)
-		marshalledPublicKey := x509.MarshalPKCS1PublicKey(pubKey)
-
-		response := map[string]interface{}{
-			"publicKey":  marshalledPublicKey,
-			"privateKey": marshalledPrivKey,
-		}
-
-		responseJSON, _ := json.Marshal(response)
-
-		w.WriteHeader(http.StatusOK)
-		w.Write(responseJSON)
-
-	} else {
-		w.WriteHeader(http.StatusUnauthorized)
-	}
+	w.WriteHeader(http.StatusOK)
+	w.Write(responseJSON)
 
 }

@@ -6,8 +6,8 @@ import (
 	"errors"
 	"log"
 
-	"primitivofr/kaepora/models"
-	"primitivofr/kaepora/services/db"
+	"github.com/applinh/kaepora/lib/db"
+	"github.com/applinh/kaepora/models"
 )
 
 type User struct {

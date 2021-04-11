@@ -2,7 +2,8 @@ package db
 
 import (
 	"log"
-	"primitivofr/kaepora/kvdb"
+
+	"github.com/applinh/kaepora/kvdb"
 
 	"github.com/boltdb/bolt"
 )

@@ -1,12 +1,12 @@
 package auth
 
 import (
-	"crypto/x509"
 	"encoding/json"
 	"log"
 	"net/http"
-	"primitivofr/kaepora/services/auth"
-	utilserrors "primitivofr/kaepora/utils/errors"
+
+	authService "github.com/applinh/kaepora/services/auth"
+	utilserrors "github.com/applinh/kaepora/utils/errors"
 )
 
 // SignUp is the route handler to sign a user up
@@ -16,64 +16,24 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 
 	data := make(map[string]interface{})
 	err := json.NewDecoder(r.Body).Decode(&data)
+
 	if err != nil {
 		log.Println(err)
-		utilserrors.SendHTTPError(w, http.StatusBadRequest, "User already exist with this username")
+
+		utilserrors.SendHTTPError(w, http.StatusInternalServerError, err.Error())
 		return
 
 	}
 
-	myUser, _ := auth.NewUser(data["username"].(string), data["password"].(string))
-
-	exist, err := myUser.UserExist()
+	res, err := authService.SignUp(data["username"].(string), data["password"].(string))
 	if err != nil {
-
 		log.Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		//http.Error(w, err.Error(), http.StatusInternalServerError)
+		// TODO: Create error models and adapt the http return code
+		utilserrors.SendHTTPError(w, http.StatusInternalServerError, "Error occured while signing user up : "+err.Error())
 		return
 	}
 
-	if exist {
-		utilserrors.SendHTTPError(w, http.StatusBadRequest, "User already exist with this username")
-		return
-	}
-
-	if err := myUser.SignUp(); err != nil {
-		log.Println(err)
-		utilserrors.SendHTTPError(w, http.StatusInternalServerError, "Internal error occured while signing user up")
-		return
-	}
-
-	keys, err := myUser.NewUserKeys()
-	if err != nil {
-		log.Println(err)
-		utilserrors.SendHTTPError(w, http.StatusInternalServerError, "Internal error occured while generating keys")
-	}
-
-	if err := keys.SaveToDB(); err != nil {
-		log.Println(err)
-		utilserrors.SendHTTPError(w, http.StatusInternalServerError, "Internal error occured while saving encrypted keys to db")
-	}
-
-	pubKey, err := myUser.GetPublicKey()
-	if err != nil {
-		log.Println(err)
-	}
-	privKey, err := myUser.GetPrivateKey()
-	if err != nil {
-		log.Println(err)
-	}
-
-	marshalledPrivKey := x509.MarshalPKCS1PrivateKey(privKey)
-	marshalledPublicKey := x509.MarshalPKCS1PublicKey(pubKey)
-
-	response := map[string]interface{}{
-		"publicKey":  marshalledPublicKey,
-		"privateKey": marshalledPrivKey,
-	}
-
-	responseJSON, _ := json.Marshal(response)
+	responseJSON, _ := json.Marshal(res)
 
 	w.WriteHeader(http.StatusCreated)
 	w.Write(responseJSON)

@@ -1,7 +1,7 @@
 package user
 
 import (
-	"primitivofr/kaepora/services/db"
+	"github.com/applinh/kaepora/lib/db"
 )
 
 func GetUsernamesFromDB() ([]string, error) {
