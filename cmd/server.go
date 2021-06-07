@@ -42,9 +42,6 @@ func init() {
 	rootCmd.AddCommand(serverCmd)
 }
 
-var dbName = "kaeporadb"
-var usersBucket = "users"
-
 // Rewriter is..
 func Rewriter(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

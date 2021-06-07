@@ -7,6 +7,7 @@ require (
 	github.com/boltdb/bolt v1.3.1
 	github.com/coreos/go-etcd v2.0.0+incompatible // indirect
 	github.com/cpuguy83/go-md2man v1.0.10 // indirect
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/gorilla/mux v1.8.0
 	github.com/manifoldco/promptui v0.8.0 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
